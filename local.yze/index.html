@@ -61,6 +61,13 @@
     <button class="catalog-btn" onclick="openMasterCatalog()">Master Catalog</button>
    
     <script>
+        // Check authentication on page load
+        window.onload = function() {
+            if (sessionStorage.getItem('authenticated') !== 'true') {
+                window.location.href = 'login.html';
+            }
+        }
+        
         function openMasterCatalog() {
             window.location.href = 'master-catalog.html';
         }
