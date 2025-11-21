@@ -271,7 +271,7 @@
     <button class="back-btn" onclick="goBack()">← Back to Master Catalog</button>
     
     <div class="category-header">
-        <div id="categoryImageContainer" onclick="editPhoto()" style="cursor: pointer; border: 2px dashed #006400; padding: 10px; text-align: center; min-height: 2cm; display: flex; align-items: center; justify-content: center;">Click to upload image</div>
+        <div id="categoryImageContainer" onclick="editPhoto()" style="cursor: pointer;"></div>
         <h1 id="categoryTitle" class="category-title" onclick="editName()" style="cursor: pointer;"></h1>
         
         <div class="brands-section">
@@ -679,8 +679,15 @@
                 
                 // Set category image
                 const imageContainer = document.getElementById('categoryImageContainer');
-                if (category.image && category.image.trim() !== '') {
-                    imageContainer.innerHTML = `<img src="${category.image}" alt="${category.name}" class="category-image" onerror="this.parentNode.innerHTML='<div class=\"no-image\">📁</div>'">`;
+                // Reload category data to get latest image
+                const latestCategory = JSON.parse(localStorage.getItem('currentCategory') || '{}');
+                const latestCategories = JSON.parse(localStorage.getItem('localyzeCategories') || '[]');
+                const currentIndex = parseInt(localStorage.getItem('currentCategoryIndex') || '0');
+                
+                let imageToShow = latestCategory.image || (latestCategories[currentIndex] && latestCategories[currentIndex].image);
+                
+                if (imageToShow && imageToShow.trim() !== '') {
+                    imageContainer.innerHTML = `<img src="${imageToShow}" alt="${category.name}" class="category-image">`;
                 } else {
                     imageContainer.innerHTML = '<div class="no-image">📁</div>';
                 }
