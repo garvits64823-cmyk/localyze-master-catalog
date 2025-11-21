@@ -155,9 +155,15 @@
         }
         
         window.onload = function() {
+            // Clear any existing session for testing
+            // sessionStorage.removeItem('localyzeLoggedIn');
+            
             if (sessionStorage.getItem('localyzeLoggedIn') === 'true') {
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'flex';
+            } else {
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('mainContent').style.display = 'none';
             }
             
             document.getElementById('passwordInput').addEventListener('keypress', function(e) {
