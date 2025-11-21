@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Localyze Master Catalog</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #F5F5DC;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        .title {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #006400;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+        
+        .about-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #006400;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .catalog-btn {
+            background-color: #006400;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .catalog-btn:hover, .about-btn:hover {
+            background-color: #004d00;
+        }
+    </style>
+</head>
+<body>
+    <button class="about-btn" onclick="openAbout()">About</button>
+    <h1 class="title">LOCALYZE</h1>
+    <button class="catalog-btn" onclick="openMasterCatalog()">Master Catalog</button>
+   
+    <script>
+        function openMasterCatalog() {
+            window.location.href = 'master-catalog.html';
+        }
+        
+        function openAbout() {
+            window.location.href = 'about.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Catalog - Localyze</title>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, get, push, remove, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_K289rmYvSb1oylnSQXY-sc7dyLA9xQw",
+            authDomain: "localyze-master-catalog.firebaseapp.com",
+            databaseURL: "https://localyze-master-catalog-default-rtdb.firebaseio.com",
+            projectId: "localyze-master-catalog",
+            storageBucket: "localyze-master-catalog.firebasestorage.app",
+            messagingSenderId: "248070899098",
+            appId: "1:248070899098:web:57a890a03d6e0ec8efe623"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        
+        // Make Firebase available globally
+        window.firebaseDB = database;
+        window.firebaseRef = ref;
+        window.firebaseSet = set;
+        window.firebaseGet = get;
+        window.firebasePush = push;
+        window.firebaseRemove = remove;
+        window.firebaseOnValue = onValue;
+    </script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #F5F5DC;
+            font-family: Arial, sans-serif;
+        }
+        
+        .header {
+            text-align: center;
+            color: #006400;
+            margin-bottom: 30px;
+        }
+        
+        .back-btn {
+            background-color: #006400;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .back-btn:hover {
+            background-color: #004d00;
+        }
+        
+        .category-section {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .category-section h2 {
+            color: #006400;
+            margin-bottom: 20px;
+        }
+        
+        .add-btn {
+            background-color: #006400;
+            color: white;
+            border: 2px solid #006400;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 120px;
+            height: 140px;
+            cursor: pointer;
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        
+        .add-btn:hover {
+            background-color: #004d00;
+        }
+        
+        .category-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .category-item {
+            background-color: white;
+            border: 2px solid #006400;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 120px;
+            position: relative;
+        }
+        
+        .category-image {
+            width: 80px;
+            height: 100px;
+            border-radius: 4px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+        }
+        
+        .no-image {
+            width: 80px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+        
+        .category-name {
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        
+        .search-input {
+            width: 300px;
+            padding: 10px;
+            border: 2px solid #006400;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            outline: none;
+        }
+        
+        .search-input:focus {
+            border-color: #004d00;
+        }
+        
+        .no-results {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="goBack()">← Back to Home</button>
+    <div class="header">
+        <h1>Master Catalog</h1>
+    </div>
+    
+    <div class="category-section">
+        <h2>Categories</h2>
+        <input type="text" id="searchInput" placeholder="Search categories..." class="search-input">
+        <div id="noResults" class="no-results" style="display: none;">
+            No such category found. Want to add?
+        </div>
+        <div id="categoryList" class="category-list"></div>
+    </div>
+    
+    <script>
+        let categories = [];
+        
+        function loadCategories() {
+            if (window.firebaseDB) {
+                const categoriesRef = window.firebaseRef(window.firebaseDB, 'categories');
+                window.firebaseGet(categoriesRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        categories = snapshot.val() || [];
+                    } else {
+                        categories = JSON.parse(localStorage.getItem('localyzeCategories')) || [];
+                    }
+                    renderCategories();
+                }).catch((error) => {
+                    console.error('Firebase load error:', error);
+                    categories = JSON.parse(localStorage.getItem('localyzeCategories')) || [];
+                    renderCategories();
+                });
+            } else {
+                categories = JSON.parse(localStorage.getItem('localyzeCategories')) || [];
+                renderCategories();
+            }
+        }
+        
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+        
+        function addCategory() {
+            const categoryName = prompt('Enter category name:');
+            if (!categoryName || !categoryName.trim()) return;
+            
+            const wantPhoto = confirm('Add a photo?');
+            
+            if (wantPhoto) {
+                showFileUpload(categoryName.trim());
+            } else {
+                categories.push({
+                    name: categoryName.trim(),
+                    image: null
+                });
+                saveCategories();
+                renderCategories();
+            }
+        }
+        
+        function showFileUpload(categoryName) {
+            // Create file input element
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        categories.push({
+                            name: categoryName,
+                            image: event.target.result
+                        });
+                        saveCategories();
+                        renderCategories();
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // Add without image if no file selected
+                    categories.push({
+                        name: categoryName,
+                        image: null
+                    });
+                    saveCategories();
+                    renderCategories();
+                }
+            };
+            
+            // Trigger file dialog
+            input.click();
+        }
+        
+        function deleteCategory(index) {
+            categories.splice(index, 1);
+            saveCategories();
+            renderCategories();
+        }
+        
+        function saveCategories() {
+            // Save to Firebase
+            if (window.firebaseDB) {
+                const categoriesRef = window.firebaseRef(window.firebaseDB, 'categories');
+                window.firebaseSet(categoriesRef, categories).catch(error => {
+                    console.error('Firebase save error:', error);
+                    localStorage.setItem('localyzeCategories', JSON.stringify(categories));
+                });
+            } else {
+                localStorage.setItem('localyzeCategories', JSON.stringify(categories));
+            }
+        }
+        
+        function renderCategories(filteredCategories = categories) {
+            const categoryList = document.getElementById('categoryList');
+            const noResults = document.getElementById('noResults');
+            categoryList.innerHTML = '';
+            
+            if (filteredCategories.length === 0 && document.getElementById('searchInput').value.trim() !== '') {
+                // Show no results message
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+            }
+            
+            filteredCategories.forEach((category, originalIndex) => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category-item';
+                
+                const imageHtml = category.image ? 
+                    `<img src="${category.image}" alt="${category.name}" class="category-image">` : 
+                    '<div class="no-image">📁</div>';
+                
+                // Find original index in full categories array
+                const realIndex = categories.findIndex(cat => cat === category);
+                
+                categoryDiv.innerHTML = `
+                    <button class="delete-btn" onclick="deleteCategory(${realIndex})" style="position: absolute; top: 5px; right: 5px;">×</button>
+                    <div onclick="openCategory(${realIndex})" ondblclick="openCategory(${realIndex})" oncontextmenu="openCategory(${realIndex}); return false;" style="cursor: pointer;">
+                        ${imageHtml}
+                        <div class="category-name">${category.name}</div>
+                    </div>
+                `;
+                categoryList.appendChild(categoryDiv);
+            });
+            
+            // Add the plus button at the end
+            const addBtn = document.createElement('button');
+            addBtn.className = 'add-btn';
+            addBtn.onclick = addCategory;
+            addBtn.innerHTML = '+';
+            categoryList.appendChild(addBtn);
+        }
+        
+        function searchCategories() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                renderCategories();
+                return;
+            }
+            
+            const filtered = categories.filter(category => 
+                category.name.toLowerCase().includes(searchTerm)
+            );
+            
+            renderCategories(filtered);
+        }
+        
+
+        
+        function openCategory(index) {
+            const category = categories[index];
+            // Store category data for the category page
+            localStorage.setItem('currentCategory', JSON.stringify(category));
+            localStorage.setItem('currentCategoryIndex', index);
+            // Navigate to category page
+            window.location.href = 'category-page.html';
+        }
+        
+        // Initialize categories on page load
+        window.onload = function() {
+            setTimeout(() => {
+                loadCategories();
+            }, 1000);
+            
+            document.getElementById('searchInput').addEventListener('input', searchCategories);
+        }
+    </script>
+</body>
+</html>

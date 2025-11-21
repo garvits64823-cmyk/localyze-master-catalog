@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand - Localyze Master Catalog</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, get, push, remove, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_K289rmYvSb1oylnSQXY-sc7dyLA9xQw",
+            authDomain: "localyze-master-catalog.firebaseapp.com",
+            databaseURL: "https://localyze-master-catalog-default-rtdb.firebaseio.com",
+            projectId: "localyze-master-catalog",
+            storageBucket: "localyze-master-catalog.firebasestorage.app",
+            messagingSenderId: "248070899098",
+            appId: "1:248070899098:web:57a890a03d6e0ec8efe623"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        
+        window.firebaseDB = database;
+        window.firebaseRef = ref;
+        window.firebaseSet = set;
+        window.firebaseGet = get;
+        window.firebasePush = push;
+        window.firebaseRemove = remove;
+        window.firebaseOnValue = onValue;
+    </script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #F5F5DC;
+            font-family: Arial, sans-serif;
+            padding-bottom: 120px;
+        }
+        
+        .back-btn {
+            background-color: #006400;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .back-btn:hover {
+            background-color: #004d00;
+        }
+        
+        .brand-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .brand-logo {
+            width: 2cm;
+            height: 2cm;
+            border-radius: 4px;
+            object-fit: cover;
+            border: 2px solid #006400;
+            margin-bottom: 20px;
+        }
+        
+        .no-logo {
+            width: 2cm;
+            height: 2cm;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            border: 2px solid #006400;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            margin-bottom: 20px;
+        }
+        
+        .brand-name {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #006400;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        
+        .products-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+        
+        .products-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #006400;
+            text-transform: uppercase;
+        }
+        
+        .search-input {
+            padding: 8px 12px;
+            border: 2px solid #006400;
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+            width: 200px;
+        }
+        
+        .search-input:focus {
+            border-color: #004d00;
+        }
+        
+        .import-btn {
+            background-color: #006400;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .import-btn:hover {
+            background-color: #004d00;
+        }
+        
+        .products-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .product-box {
+            background-color: white;
+            border: 2px solid #006400;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 4cm;
+            height: 4cm;
+            position: relative;
+        }
+        
+        .product-image {
+            width: 3cm;
+            height: 2.5cm;
+            border-radius: 4px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+        }
+        
+        .no-image {
+            width: 3cm;
+            height: 2.5cm;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+        
+        .product-name {
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .product-delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        
+        .product-delete-btn:hover {
+            background-color: #c82333;
+        }
+        
+        .add-btn {
+            background-color: #006400;
+            color: white;
+            border: 2px solid #006400;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 4cm;
+            height: 4cm;
+            cursor: pointer;
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        
+        .add-btn:hover {
+            background-color: #004d00;
+        }
+        
+        .no-results {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        
+        .imported-files-section {
+            text-align: left;
+            margin-top: 20px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #F5F5DC;
+            padding: 10px 20px;
+            border-top: 2px solid #006400;
+        }
+        
+        .imported-files-section h3 {
+            color: #006400;
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+        }
+        
+        .files-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-start;
+        }
+        
+        .file-item {
+            background-color: white;
+            border: 1px solid #006400;
+            border-radius: 6px;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            color: #333;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .file-item:hover {
+            background-color: #f0f8f0;
+        }
+        
+        .remove-btn {
+            position: absolute;
+            top: 2px;
+            right: 5px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        .remove-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="goBack()">← Back to Category</button>
+    
+    <div class="brand-header">
+        <div id="brandLogoContainer" onclick="editPhoto()" style="cursor: pointer;"></div>
+        <h1 id="brandName" class="brand-name" onclick="editName()" style="cursor: pointer;"></h1>
+        
+        <div class="products-section">
+            <span class="products-text">PRODUCTS</span>
+            <input type="text" id="productSearch" placeholder="Search products..." class="search-input">
+            <button class="import-btn" onclick="importFile()">Import File</button>
+        </div>
+        
+        <div id="noResults" class="no-results" style="display: none;">
+            No such product found. Want to add?
+        </div>
+        <div id="productsContainer" class="products-container"></div>
+    </div>
+    
+    <div class="imported-files-section">
+        <h3>Imported Files</h3>
+        <div id="importedFilesList" class="files-list"></div>
+    </div>
+    
+    <script>
+        let currentBrandIndex;
+        let allBrands;
+        let products = [];
+        let importedFiles = [];
+        
+        function goBack() {
+            window.location.href = 'category-page.html';
+        }
+        
+        function editPhoto() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        // Update in brands array
+                        allBrands[currentBrandIndex].image = event.target.result;
+                        // Save to localStorage
+                        localStorage.setItem('localyzeCategories', JSON.stringify(allBrands));
+                        localStorage.setItem('currentBrand', JSON.stringify(allBrands[currentBrandIndex]));
+                        // Update display
+                        const imageContainer = document.getElementById('brandLogoContainer');
+                        imageContainer.innerHTML = `<img src="${event.target.result}" alt="${allBrands[currentBrandIndex].name}" class="brand-logo">`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            
+            input.click();
+        }
+        
+        function editName() {
+            const currentName = allBrands[currentBrandIndex].name;
+            const newName = prompt('Enter new brand name:', currentName);
+            
+            if (newName && newName.trim() && newName.trim() !== currentName) {
+                // Update in brands array
+                allBrands[currentBrandIndex].name = newName.trim();
+                // Save to localStorage
+                localStorage.setItem('localyzeCategories', JSON.stringify(allBrands));
+                localStorage.setItem('currentBrand', JSON.stringify(allBrands[currentBrandIndex]));
+                // Update display
+                document.getElementById('brandName').textContent = newName.trim();
+            }
+        }
+        
+        function addProduct() {
+            const productName = prompt('Enter product name:');
+            if (!productName || !productName.trim()) return;
+            
+            const wantPhoto = confirm('Add a photo?');
+            
+            if (wantPhoto) {
+                showFileUpload(productName.trim());
+            } else {
+                products.push({
+                    name: productName.trim(),
+                    image: null
+                });
+                saveProducts();
+                renderProducts();
+            }
+        }
+        
+        function showFileUpload(productName) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        products.push({
+                            name: productName,
+                            image: event.target.result
+                        });
+                        saveProducts();
+                        renderProducts();
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    products.push({
+                        name: productName,
+                        image: null
+                    });
+                    saveProducts();
+                    renderProducts();
+                }
+            };
+            
+            input.click();
+        }
+        
+        function renderProducts(filteredProducts = products) {
+            const container = document.getElementById('productsContainer');
+            const noResults = document.getElementById('noResults');
+            container.innerHTML = '';
+            
+            if (filteredProducts.length === 0 && document.getElementById('productSearch').value.trim() !== '') {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+            }
+            
+            filteredProducts.forEach((product, originalIndex) => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product-box';
+                
+                const imageHtml = product.image ? 
+                    `<img src="${product.image}" alt="${product.name}" class="product-image">` : 
+                    '<div class="no-image">📁</div>';
+                
+                const realIndex = products.findIndex(prod => prod === product);
+                
+                // Add click events for opening product page
+                productDiv.onclick = function(e) {
+                    if (e.target.className !== 'product-delete-btn') {
+                        openProductPage(realIndex);
+                    }
+                };
+                productDiv.ondblclick = function(e) {
+                    if (e.target.className !== 'product-delete-btn') {
+                        openProductPage(realIndex);
+                    }
+                };
+                productDiv.oncontextmenu = function(e) {
+                    if (e.target.className !== 'product-delete-btn') {
+                        openProductPage(realIndex);
+                        return false;
+                    }
+                };
+                productDiv.style.cursor = 'pointer';
+                
+                productDiv.innerHTML = `
+                    <button class="product-delete-btn" onclick="deleteProduct(${realIndex})">×</button>
+                    ${imageHtml}
+                    <div class="product-name">${product.name}</div>
+                `;
+                container.appendChild(productDiv);
+            });
+            
+            // Add the plus button at the end
+            const addBtn = document.createElement('button');
+            addBtn.className = 'add-btn';
+            addBtn.onclick = addProduct;
+            addBtn.innerHTML = '+';
+            container.appendChild(addBtn);
+        }
+        
+        function deleteProduct(index) {
+            products.splice(index, 1);
+            saveProducts();
+            renderProducts();
+        }
+        
+        function searchProducts() {
+            const searchTerm = document.getElementById('productSearch').value.toLowerCase().trim();
+            
+            if (searchTerm === '') {
+                renderProducts();
+                return;
+            }
+            
+            const filtered = products.filter(product => 
+                product.name.toLowerCase().includes(searchTerm)
+            );
+            
+            renderProducts(filtered);
+        }
+        
+        function importFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.xlsx,.xls,.csv';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        try {
+                            const data = new Uint8Array(event.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            
+                            const firstSheetName = workbook.SheetNames[0];
+                            const worksheet = workbook.Sheets[firstSheetName];
+                            
+                            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                            
+                            const fileInfo = {
+                                name: file.name,
+                                size: (file.size / 1024).toFixed(2) + ' KB',
+                                type: file.type || 'Excel',
+                                date: new Date().toLocaleDateString(),
+                                data: jsonData,
+                                sheets: workbook.SheetNames
+                            };
+                            
+                            importedFiles.push(fileInfo);
+                            saveImportedFiles();
+                            renderImportedFiles();
+                            // Extract products from Excel data
+                            const extractedProducts = extractProductsFromExcel(jsonData);
+                            
+                            // Add products to display
+                            addProductsToDisplay(extractedProducts);
+                            
+                            alert('Excel file "' + file.name + '" read successfully!\\nRows: ' + jsonData.length + '\\nProducts extracted: ' + extractedProducts.length);
+                        } catch (error) {
+                            alert('Error reading Excel file: ' + error.message);
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
+                }
+            };
+            
+            input.click();
+        }
+        
+        function renderImportedFiles() {
+            const filesList = document.getElementById('importedFilesList');
+            filesList.innerHTML = '';
+            
+            if (importedFiles.length === 0) {
+                filesList.innerHTML = '<p style="color: #666;">No files imported yet</p>';
+                return;
+            }
+            
+            importedFiles.forEach((file, index) => {
+                const fileDiv = document.createElement('div');
+                fileDiv.className = 'file-item';
+                fileDiv.onclick = function() { openFile(index); };
+                fileDiv.innerHTML = `
+                    <button class="remove-btn" onclick="event.stopPropagation(); removeFile(${index})">×</button>
+                    <strong>${file.name}</strong><br>
+                    <small>${file.size} • ${file.date}</small>
+                `;
+                filesList.appendChild(fileDiv);
+            });
+        }
+        
+        function openFile(index) {
+            const file = importedFiles[index];
+            
+            if (file.data && file.data.length > 0) {
+                let content = 'Excel File: ' + file.name + '\\n';
+                content += 'Sheets: ' + (file.sheets ? file.sheets.join(', ') : 'Unknown') + '\\n';
+                content += 'Rows: ' + file.data.length + '\\n\\n';
+                content += 'First 5 rows:\\n';
+                
+                for (let i = 0; i < Math.min(5, file.data.length); i++) {
+                    const row = file.data[i];
+                    content += 'Row ' + (i + 1) + ': ' + (Array.isArray(row) ? row.join(' | ') : row) + '\\n';
+                }
+                
+                if (file.data.length > 5) {
+                    content += '... and ' + (file.data.length - 5) + ' more rows';
+                }
+                
+                alert(content);
+            } else {
+                alert('File: ' + file.name + '\\n\\nNo data available or file could not be read.');
+            }
+        }
+        
+        function removeFile(index) {
+            if (confirm('Are you sure you want to remove this file?')) {
+                importedFiles.splice(index, 1);
+                saveImportedFiles();
+                renderImportedFiles();
+            }
+        }
+        
+        function saveProducts() {
+            if (window.firebaseDB && currentBrandIndex !== undefined) {
+                const productsRef = window.firebaseRef(window.firebaseDB, `products/${currentBrandIndex}`);
+                window.firebaseSet(productsRef, products).catch(error => {
+                    console.error('Firebase save error:', error);
+                    const brandKey = 'products_' + currentBrandIndex;
+                    localStorage.setItem(brandKey, JSON.stringify(products));
+                });
+            }
+        }
+        
+        function loadProducts() {
+            if (window.firebaseDB && currentBrandIndex !== undefined) {
+                const productsRef = window.firebaseRef(window.firebaseDB, `products/${currentBrandIndex}`);
+                window.firebaseGet(productsRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        products = snapshot.val() || [];
+                    } else {
+                        const brandKey = 'products_' + currentBrandIndex;
+                        products = JSON.parse(localStorage.getItem(brandKey)) || [];
+                    }
+                    renderProducts();
+                }).catch((error) => {
+                    console.error('Firebase load error:', error);
+                    const brandKey = 'products_' + currentBrandIndex;
+                    products = JSON.parse(localStorage.getItem(brandKey)) || [];
+                    renderProducts();
+                });
+            }
+        }
+        
+        function extractProductsFromExcel(data) {
+            const extractedProducts = [];
+            
+            // Skip header row (index 0) and process data rows
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (row && row.length >= 2 && row[0] && row[1]) {
+                    extractedProducts.push({
+                        name: row[0].toString().trim(),
+                        imageUrl: row[1].toString().trim()
+                    });
+                }
+            }
+            
+            return extractedProducts;
+        }
+        
+        function addProductsToDisplay(extractedProducts) {
+            extractedProducts.forEach(product => {
+                products.push({
+                    name: product.name,
+                    image: product.imageUrl
+                });
+            });
+            saveProducts();
+            renderProducts();
+        }
+        
+        function saveImportedFiles() {
+            if (window.firebaseDB && currentBrandIndex !== undefined) {
+                const filesRef = window.firebaseRef(window.firebaseDB, `files/brand/${currentBrandIndex}`);
+                window.firebaseSet(filesRef, importedFiles).catch(error => {
+                    console.error('Firebase save error:', error);
+                    const brandKey = 'importedFiles_brand_' + currentBrandIndex;
+                    localStorage.setItem(brandKey, JSON.stringify(importedFiles));
+                });
+            }
+        }
+        
+        function loadImportedFiles() {
+            if (window.firebaseDB && currentBrandIndex !== undefined) {
+                const filesRef = window.firebaseRef(window.firebaseDB, `files/brand/${currentBrandIndex}`);
+                window.firebaseGet(filesRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        importedFiles = snapshot.val() || [];
+                    } else {
+                        const brandKey = 'importedFiles_brand_' + currentBrandIndex;
+                        importedFiles = JSON.parse(localStorage.getItem(brandKey)) || [];
+                    }
+                    renderImportedFiles();
+                }).catch((error) => {
+                    console.error('Firebase load error:', error);
+                    const brandKey = 'importedFiles_brand_' + currentBrandIndex;
+                    importedFiles = JSON.parse(localStorage.getItem(brandKey)) || [];
+                    renderImportedFiles();
+                });
+            }
+        }
+        
+        function openProductPage(index) {
+            const product = products[index];
+            // Store product data for the product page
+            localStorage.setItem('currentProduct', JSON.stringify(product));
+            localStorage.setItem('currentProductIndex', index);
+            // Navigate to product page
+            window.location.href = 'product-page.html';
+        }
+        
+        // Load brand data on page load
+        window.onload = function() {
+            const brandData = localStorage.getItem('currentBrand');
+            currentBrandIndex = parseInt(localStorage.getItem('currentBrandIndex'));
+            
+            const categoryIndex = localStorage.getItem('currentCategoryIndex');
+            const categoryKey = 'brands_' + categoryIndex;
+            allBrands = JSON.parse(localStorage.getItem(categoryKey)) || [];
+            
+            if (brandData) {
+                const brand = JSON.parse(brandData);
+                
+                document.getElementById('brandName').textContent = brand.name;
+                
+                const logoContainer = document.getElementById('brandLogoContainer');
+                if (brand.imageUrl) {
+                    logoContainer.innerHTML = `<img src="${brand.imageUrl}" alt="${brand.name}" class="brand-logo">`;
+                } else {
+                    logoContainer.innerHTML = '<div class="no-logo">📁</div>';
+                }
+                
+                setTimeout(() => {
+                    loadProducts();
+                    loadImportedFiles();
+                }, 1000);
+                
+                document.getElementById('productSearch').addEventListener('input', searchProducts);
+                document.getElementById('productSearch').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchProducts();
+                    }
+                });
+            } else {
+                window.location.href = 'category-page.html';
+            }
+        }
+    </script>
+</body>
+</html>
