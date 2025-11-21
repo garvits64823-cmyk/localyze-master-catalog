@@ -271,7 +271,7 @@
     <button class="back-btn" onclick="goBack()">← Back to Master Catalog</button>
     
     <div class="category-header">
-        <div id="categoryImageContainer" onclick="editPhoto()" style="cursor: pointer; border: 2px dashed #006400; padding: 10px; text-align: center;">Click to upload image</div>
+        <div id="categoryImageContainer" onclick="editPhoto()" style="cursor: pointer; border: 2px dashed #006400; padding: 10px; text-align: center; min-height: 2cm; display: flex; align-items: center; justify-content: center;">Click to upload image</div>
         <h1 id="categoryTitle" class="category-title" onclick="editName()" style="cursor: pointer;"></h1>
         
         <div class="brands-section">
@@ -298,44 +298,57 @@
         }
         
         function editPhoto() {
-            alert('Photo edit clicked!');
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
             
-            input.onchange = function(e) {
-                alert('File selected!');
+            input.addEventListener('change', function(e) {
                 const file = e.target.files[0];
-                if (file) {
-                    alert('File found: ' + file.name);
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        alert('File read successfully!');
+                if (!file) {
+                    alert('No file selected!');
+                    return;
+                }
+                
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('Image too large! Please choose an image smaller than 2MB.');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    try {
                         const imageData = event.target.result;
                         
-                        // Update display immediately
+                        // Update display first
                         const imageContainer = document.getElementById('categoryImageContainer');
-                        imageContainer.innerHTML = `<img src="${imageData}" alt="Category Image" class="category-image">`;
+                        imageContainer.innerHTML = `<img src="${imageData}" alt="Category Image" class="category-image" style="width: 2cm; height: 2cm; object-fit: cover; border: 2px solid #006400; border-radius: 4px;">`;
                         
-                        // Update in categories array
-                        if (categories && currentCategoryIndex !== undefined) {
-                            categories[currentCategoryIndex].image = imageData;
+                        // Save to localStorage
+                        const categoryData = JSON.parse(localStorage.getItem('currentCategory') || '{}');
+                        categoryData.image = imageData;
+                        localStorage.setItem('currentCategory', JSON.stringify(categoryData));
+                        
+                        // Update categories array
+                        const categories = JSON.parse(localStorage.getItem('localyzeCategories') || '[]');
+                        const currentIndex = parseInt(localStorage.getItem('currentCategoryIndex') || '0');
+                        if (categories[currentIndex]) {
+                            categories[currentIndex].image = imageData;
                             localStorage.setItem('localyzeCategories', JSON.stringify(categories));
-                            localStorage.setItem('currentCategory', JSON.stringify(categories[currentCategoryIndex]));
                         }
                         
                         alert('Image uploaded successfully!');
-                    };
-                    
-                    reader.onerror = function() {
-                        alert('Error reading image file.');
-                    };
-                    
-                    reader.readAsDataURL(file);
-                } else {
-                    alert('No file selected!');
-                }
-            };
+                    } catch (error) {
+                        alert('Error processing image: ' + error.message);
+                    }
+                };
+                
+                reader.onerror = function() {
+                    alert('Failed to read the image file. Please try again.');
+                };
+                
+                reader.readAsDataURL(file);
+            });
             
             input.click();
         }
