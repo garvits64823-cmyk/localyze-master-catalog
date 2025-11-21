@@ -1,80 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Localyze Master Catalog - Login Required</title>
+    <title>LOCALYZE - Password Required</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #F5F5DC;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        body { 
+            background: #F5F5DC; 
+            font-family: Arial; 
+            text-align: center; 
+            padding-top: 200px; 
         }
-        .title {
-            font-size: 4rem;
-            font-weight: bold;
-            color: #006400;
-            margin-bottom: 50px;
-            text-align: center;
+        h1 { 
+            color: #006400; 
+            font-size: 4rem; 
+            margin-bottom: 50px; 
         }
-        .password-input {
-            padding: 15px 20px;
-            font-size: 1.2rem;
-            border: 2px solid #006400;
-            border-radius: 8px;
-            outline: none;
-            width: 250px;
-            text-align: center;
-            margin: 20px;
+        input { 
+            padding: 15px; 
+            font-size: 18px; 
+            border: 2px solid #006400; 
+            border-radius: 8px; 
+            margin: 10px; 
+            width: 250px; 
         }
-        .login-btn {
-            background-color: #006400;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            border-radius: 8px;
-            cursor: pointer;
+        button { 
+            padding: 15px 30px; 
+            font-size: 18px; 
+            background: #006400; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
         }
-        .error {
-            color: red;
-            margin-top: 10px;
-        }
-        #main {
-            display: none;
+        .error { 
+            color: red; 
+            margin-top: 20px; 
         }
     </style>
 </head>
 <body>
-    <h1 class="title">LOCALYZE</h1>
-    <input type="password" id="pwd" placeholder="Enter password" class="password-input">
-    <button onclick="login()" class="login-btn">Enter</button>
-    <div id="error" class="error"></div>
-    
-    <div id="main">
-        <button onclick="location.href='about.html'" style="position:absolute;top:20px;right:20px;background:#006400;color:white;border:none;padding:10px 20px;border-radius:8px;">About</button>
-        <h1 class="title">LOCALYZE</h1>
-        <button onclick="location.href='master-catalog.html'" style="background:#006400;color:white;border:none;padding:15px 30px;font-size:1.2rem;border-radius:8px;">Master Catalog</button>
-    </div>
+    <h1>LOCALYZE</h1>
+    <p>Enter password to continue:</p>
+    <input type="password" id="pass" placeholder="Password">
+    <br>
+    <button onclick="check()">LOGIN</button>
+    <div id="msg" class="error"></div>
     
     <script>
-        function login() {
-            if (document.getElementById('pwd').value === 'localyze@2025') {
-                document.body.innerHTML = document.getElementById('main').innerHTML;
+        function check() {
+            var p = document.getElementById('pass').value;
+            if (p === 'localyze@2025') {
+                document.body.innerHTML = `
+                    <div style="background:#F5F5DC;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+                        <button onclick="location.href='about.html'" style="position:absolute;top:20px;right:20px;background:#006400;color:white;border:none;padding:10px 20px;border-radius:8px;">About</button>
+                        <h1 style="color:#006400;font-size:4rem;margin-bottom:50px;">LOCALYZE</h1>
+                        <button onclick="location.href='master-catalog.html'" style="background:#006400;color:white;border:none;padding:15px 30px;font-size:1.2rem;border-radius:8px;">Master Catalog</button>
+                    </div>`;
             } else {
-                document.getElementById('error').textContent = 'Wrong password!';
-                document.getElementById('pwd').value = '';
+                document.getElementById('msg').innerHTML = 'WRONG PASSWORD!';
+                document.getElementById('pass').value = '';
             }
         }
-        document.getElementById('pwd').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') login();
-        });
+        document.getElementById('pass').onkeypress = function(e) {
+            if (e.key === 'Enter') check();
+        }
     </script>
 </body>
 </html>
