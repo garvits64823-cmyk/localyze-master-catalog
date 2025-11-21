@@ -305,17 +305,42 @@
             input.onchange = function(e) {
                 const file = e.target.files[0];
                 if (file) {
+                    // Check file size (limit to 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Image too large. Please choose an image smaller than 5MB.');
+                        return;
+                    }
+                    
                     const reader = new FileReader();
                     reader.onload = function(event) {
+                        const imageData = event.target.result;
+                        
                         // Update in categories array
-                        categories[currentCategoryIndex].image = event.target.result;
-                        // Save to localStorage
+                        categories[currentCategoryIndex].image = imageData;
+                        
+                        // Save to localStorage immediately
                         localStorage.setItem('localyzeCategories', JSON.stringify(categories));
                         localStorage.setItem('currentCategory', JSON.stringify(categories[currentCategoryIndex]));
-                        // Update display
+                        
+                        // Save to Firebase
+                        if (window.firebaseDB) {
+                            const categoryRef = window.firebaseRef(window.firebaseDB, `categories/${currentCategoryIndex}`);
+                            window.firebaseSet(categoryRef, categories[currentCategoryIndex]).catch(error => {
+                                console.error('Firebase save error:', error);
+                            });
+                        }
+                        
+                        // Update display immediately
                         const imageContainer = document.getElementById('categoryImageContainer');
-                        imageContainer.innerHTML = `<img src="${event.target.result}" alt="${categories[currentCategoryIndex].name}" class="category-image">`;
+                        imageContainer.innerHTML = `<img src="${imageData}" alt="${categories[currentCategoryIndex].name}" class="category-image">`;
+                        
+                        alert('Image uploaded successfully!');
                     };
+                    
+                    reader.onerror = function() {
+                        alert('Error reading image file. Please try again.');
+                    };
+                    
                     reader.readAsDataURL(file);
                 }
             };
@@ -649,8 +674,8 @@
                 
                 // Set category image
                 const imageContainer = document.getElementById('categoryImageContainer');
-                if (category.image) {
-                    imageContainer.innerHTML = `<img src="${category.image}" alt="${category.name}" class="category-image">`;
+                if (category.image && category.image.trim() !== '') {
+                    imageContainer.innerHTML = `<img src="${category.image}" alt="${category.name}" class="category-image" onerror="this.parentNode.innerHTML='<div class=\"no-image\">📁</div>'">`;
                 } else {
                     imageContainer.innerHTML = '<div class="no-image">📁</div>';
                 }
