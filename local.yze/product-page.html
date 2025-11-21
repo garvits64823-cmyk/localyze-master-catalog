@@ -154,7 +154,7 @@
     
     <div class="product-container">
         <div class="left-section">
-            <h1 id="productName" class="product-name"></h1>
+            <h1 id="productName" class="product-name" style="cursor: pointer;"></h1>
             
             <div class="description-section">
                 <div class="description-label">DESCRIPTION</div>
@@ -166,7 +166,7 @@
         </div>
         
         <div class="right-section">
-            <div id="productImageContainer"></div>
+            <div id="productImageContainer" style="cursor: pointer;"></div>
         </div>
     </div>
     
@@ -177,6 +177,70 @@
         
         function goBack() {
             window.location.href = 'brand-page.html';
+        }
+        
+        function editName() {
+            const currentName = allProducts[currentProductIndex].name;
+            const newName = prompt('Enter new product name:', currentName);
+            
+            if (newName && newName.trim() && newName.trim() !== currentName) {
+                // Update product data
+                allProducts[currentProductIndex].name = newName.trim();
+                
+                // Save to Firebase
+                if (window.firebaseDB && currentBrandIndex !== undefined) {
+                    const productsRef = window.firebaseRef(window.firebaseDB, `products/${currentBrandIndex}`);
+                    window.firebaseSet(productsRef, allProducts).catch(error => {
+                        console.error('Firebase save error:', error);
+                        const brandKey = 'products_' + currentBrandIndex;
+                        localStorage.setItem(brandKey, JSON.stringify(allProducts));
+                    });
+                }
+                localStorage.setItem('currentProduct', JSON.stringify(allProducts[currentProductIndex]));
+                
+                // Update display
+                document.getElementById('productName').textContent = newName.trim();
+            }
+        }
+        
+        function editPhoto() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        // Update product data
+                        allProducts[currentProductIndex].image = event.target.result;
+                        
+                        // Save to Firebase
+                        if (window.firebaseDB && currentBrandIndex !== undefined) {
+                            const productsRef = window.firebaseRef(window.firebaseDB, `products/${currentBrandIndex}`);
+                            window.firebaseSet(productsRef, allProducts).catch(error => {
+                                console.error('Firebase save error:', error);
+                                const brandKey = 'products_' + currentBrandIndex;
+                                localStorage.setItem(brandKey, JSON.stringify(allProducts));
+                            });
+                        }
+                        localStorage.setItem('currentProduct', JSON.stringify(allProducts[currentProductIndex]));
+                        
+                        // Update display
+                        const imageContainer = document.getElementById('productImageContainer');
+                        const productImg = document.createElement('img');
+                        productImg.className = 'product-image';
+                        productImg.src = event.target.result;
+                        productImg.alt = allProducts[currentProductIndex].name;
+                        imageContainer.innerHTML = '';
+                        imageContainer.appendChild(productImg);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            
+            input.click();
         }
         
         function editDescription() {
@@ -234,14 +298,15 @@
             if (productData) {
                 const product = JSON.parse(productData);
                 
-                // Set product name
+                // Set product name with click handler
                 document.getElementById('productName').textContent = product.name;
+                document.getElementById('productName').onclick = editName;
                 
                 // Set description
                 const description = product.description || 'No description available.';
                 document.getElementById('descriptionText').textContent = description;
                 
-                // Set product image
+                // Set product image with click handler
                 const imageContainer = document.getElementById('productImageContainer');
                 if (product.image) {
                     const productImg = document.createElement('img');
@@ -258,6 +323,7 @@
                 } else {
                     imageContainer.innerHTML = '<div class="no-image">📦</div>';
                 }
+                imageContainer.onclick = editPhoto;
             } else {
                 // If no product data, redirect back
                 window.location.href = 'brand-page.html';

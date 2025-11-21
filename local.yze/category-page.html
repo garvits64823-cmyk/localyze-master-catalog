@@ -271,8 +271,8 @@
     <button class="back-btn" onclick="goBack()">← Back to Master Catalog</button>
     
     <div class="category-header">
-        <div id="categoryImageContainer" onclick="editPhoto()" style="cursor: pointer;"></div>
-        <h1 id="categoryTitle" class="category-title" onclick="editName()" style="cursor: pointer;"></h1>
+        <div id="categoryImageContainer" style="cursor: pointer;"></div>
+        <h1 id="categoryTitle" class="category-title" style="cursor: pointer;"></h1>
         
         <div class="brands-section">
             <span class="brands-text">BRANDS</span>
@@ -730,13 +730,17 @@
                 // Set category title
                 document.getElementById('categoryTitle').textContent = category.name;
                 
-                // Set category image
+                // Set category image with click handler
                 const imageContainer = document.getElementById('categoryImageContainer');
                 if (category.image && category.image.trim() !== '') {
                     imageContainer.innerHTML = `<img src="${category.image}" alt="${category.name}" class="category-image">`;
                 } else {
                     imageContainer.innerHTML = '<div class="no-image">📁</div>';
                 }
+                imageContainer.onclick = editPhoto;
+                
+                // Set category title with click handler
+                document.getElementById('categoryTitle').onclick = editName;
                 
                 // Load and render imported files and brands
                 setTimeout(() => {

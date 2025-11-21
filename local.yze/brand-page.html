@@ -290,8 +290,8 @@
     <button class="back-btn" onclick="goBack()">← Back to Category</button>
     
     <div class="brand-header">
-        <div id="brandLogoContainer" onclick="editPhoto()" style="cursor: pointer;"></div>
-        <h1 id="brandName" class="brand-name" onclick="editName()" style="cursor: pointer;"></h1>
+        <div id="brandLogoContainer" style="cursor: pointer;"></div>
+        <h1 id="brandName" class="brand-name" style="cursor: pointer;"></h1>
         
         <div class="products-section">
             <span class="products-text">PRODUCTS</span>
@@ -709,6 +709,10 @@
                 } else {
                     logoContainer.innerHTML = '<div class="no-logo">📁</div>';
                 }
+                logoContainer.onclick = editPhoto;
+                
+                // Set brand name with click handler
+                document.getElementById('brandName').onclick = editName;
                 
                 setTimeout(() => {
                     loadProducts();
