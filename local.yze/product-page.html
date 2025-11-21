@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product - Localyze Master Catalog</title>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, get, push, remove, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_K289rmYvSb1oylnSQXY-sc7dyLA9xQw",
+            authDomain: "localyze-master-catalog.firebaseapp.com",
+            databaseURL: "https://localyze-master-catalog-default-rtdb.firebaseio.com",
+            projectId: "localyze-master-catalog",
+            storageBucket: "localyze-master-catalog.firebasestorage.app",
+            messagingSenderId: "248070899098",
+            appId: "1:248070899098:web:57a890a03d6e0ec8efe623"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        
+        window.firebaseDB = database;
+        window.firebaseRef = ref;
+        window.firebaseSet = set;
+        window.firebaseGet = get;
+        window.firebasePush = push;
+        window.firebaseRemove = remove;
+        window.firebaseOnValue = onValue;
+    </script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #F5F5DC;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .back-btn {
+            background-color: #006400;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 20px;
+            align-self: flex-start;
+        }
+        
+        .back-btn:hover {
+            background-color: #004d00;
+        }
+        
+        .product-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 80px);
+        }
+        
+        .left-section {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .right-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
+            border-left: 2px solid #006400;
+        }
+        
+        .product-name {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #006400;
+            text-transform: uppercase;
+            margin: 0;
+        }
+        
+        .description-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .description-label {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #006400;
+            text-transform: uppercase;
+        }
+        
+        .description-text {
+            background-color: white;
+            border: 2px solid #006400;
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #333;
+            min-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .edit-btn {
+            background-color: #006400;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            align-self: flex-start;
+        }
+        
+        .edit-btn:hover {
+            background-color: #004d00;
+        }
+        
+        .product-image {
+            max-width: 80%;
+            max-height: 80%;
+            border-radius: 8px;
+            object-fit: contain;
+            border: 2px solid #006400;
+        }
+        
+        .no-image {
+            width: 300px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            border: 2px solid #006400;
+            border-radius: 8px;
+            background-color: white;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <button class="back-btn" onclick="goBack()">← Back to Brand</button>
+    
+    <div class="product-container">
+        <div class="left-section">
+            <h1 id="productName" class="product-name"></h1>
+            
+            <div class="description-section">
+                <div class="description-label">DESCRIPTION</div>
+                <div id="descriptionText" class="description-text">
+                    No description available.
+                </div>
+                <button class="edit-btn" onclick="editDescription()">Edit Description</button>
+            </div>
+        </div>
+        
+        <div class="right-section">
+            <div id="productImageContainer"></div>
+        </div>
+    </div>
+    
+    <script>
+        let currentProductIndex;
+        let allProducts;
+        let currentBrandIndex;
+        
+        function goBack() {
+            window.location.href = 'brand-page.html';
+        }
+        
+        function editDescription() {
+            const currentDesc = document.getElementById('descriptionText').textContent;
+            const newDesc = prompt('Enter product description:', currentDesc === 'No description available.' ? '' : currentDesc);
+            
+            if (newDesc !== null) {
+                const description = newDesc.trim() || 'No description available.';
+                
+                // Update product data
+                allProducts[currentProductIndex].description = description;
+                
+                // Save to Firebase
+                if (window.firebaseDB && currentBrandIndex !== undefined) {
+                    const productsRef = window.firebaseRef(window.firebaseDB, `products/${currentBrandIndex}`);
+                    window.firebaseSet(productsRef, allProducts).catch(error => {
+                        console.error('Firebase save error:', error);
+                        const brandKey = 'products_' + currentBrandIndex;
+                        localStorage.setItem(brandKey, JSON.stringify(allProducts));
+                    });
+                }
+                localStorage.setItem('currentProduct', JSON.stringify(allProducts[currentProductIndex]));
+                
+                // Update display
+                document.getElementById('descriptionText').textContent = description;
+            }
+        }
+        
+        // Load product data on page load
+        window.onload = function() {
+            const productData = localStorage.getItem('currentProduct');
+            currentProductIndex = parseInt(localStorage.getItem('currentProductIndex'));
+            currentBrandIndex = parseInt(localStorage.getItem('currentBrandIndex'));
+            
+            // Load all products data from Firebase
+            if (window.firebaseDB && currentBrandIndex !== undefined) {
+                const productsRef = window.firebaseRef(window.firebaseDB, `products/${currentBrandIndex}`);
+                window.firebaseGet(productsRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        allProducts = snapshot.val() || [];
+                    } else {
+                        const brandKey = 'products_' + currentBrandIndex;
+                        allProducts = JSON.parse(localStorage.getItem(brandKey)) || [];
+                    }
+                }).catch((error) => {
+                    console.error('Firebase load error:', error);
+                    const brandKey = 'products_' + currentBrandIndex;
+                    allProducts = JSON.parse(localStorage.getItem(brandKey)) || [];
+                });
+            } else {
+                const brandKey = 'products_' + currentBrandIndex;
+                allProducts = JSON.parse(localStorage.getItem(brandKey)) || [];
+            }
+            
+            if (productData) {
+                const product = JSON.parse(productData);
+                
+                // Set product name
+                document.getElementById('productName').textContent = product.name;
+                
+                // Set description
+                const description = product.description || 'No description available.';
+                document.getElementById('descriptionText').textContent = description;
+                
+                // Set product image
+                const imageContainer = document.getElementById('productImageContainer');
+                if (product.image) {
+                    const productImg = document.createElement('img');
+                    productImg.className = 'product-image';
+                    productImg.src = product.image;
+                    productImg.alt = product.name;
+                    
+                    // Handle image load error
+                    productImg.onerror = function() {
+                        imageContainer.innerHTML = '<div class="no-image">No Image</div>';
+                    };
+                    
+                    imageContainer.appendChild(productImg);
+                } else {
+                    imageContainer.innerHTML = '<div class="no-image">📦</div>';
+                }
+            } else {
+                // If no product data, redirect back
+                window.location.href = 'brand-page.html';
+            }
+        }
+    </script>
+</body>
+</html>
