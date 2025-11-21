@@ -371,12 +371,26 @@
         }
         
         // Initialize categories on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            // Wait for Firebase to initialize
+            const initFirebase = () => {
+                if (window.firebaseDB) {
+                    loadCategories();
+                    document.getElementById('searchInput').addEventListener('input', searchCategories);
+                } else {
+                    setTimeout(initFirebase, 100);
+                }
+            };
+            setTimeout(initFirebase, 500);
+        });
+        
         window.onload = function() {
-            setTimeout(() => {
-                loadCategories();
-            }, 1000);
-            
-            document.getElementById('searchInput').addEventListener('input', searchCategories);
+            if (!window.firebaseDB) {
+                setTimeout(() => {
+                    loadCategories();
+                    document.getElementById('searchInput').addEventListener('input', searchCategories);
+                }, 2000);
+            }
         }
     </script>
 </body>

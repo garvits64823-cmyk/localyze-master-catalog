@@ -720,7 +720,7 @@
         }
         
         // Load category data on page load
-        window.onload = function() {
+        function initializePage() {
             currentCategoryIndex = parseInt(localStorage.getItem('currentCategoryIndex'));
             categories = JSON.parse(localStorage.getItem('localyzeCategories')) || [];
             
@@ -742,11 +742,16 @@
                 // Set category title with click handler
                 document.getElementById('categoryTitle').onclick = editName;
                 
-                // Load and render imported files and brands
-                setTimeout(() => {
-                    loadImportedFiles();
-                    loadBrands();
-                }, 500);
+                // Wait for Firebase to initialize
+                const initFirebase = () => {
+                    if (window.firebaseDB) {
+                        loadImportedFiles();
+                        loadBrands();
+                    } else {
+                        setTimeout(initFirebase, 100);
+                    }
+                };
+                setTimeout(initFirebase, 500);
                 
                 // Add search functionality
                 document.getElementById('brandSearch').addEventListener('input', searchBrands);
@@ -760,6 +765,9 @@
                 window.location.href = 'master-catalog.html';
             }
         }
+        
+        window.addEventListener('DOMContentLoaded', initializePage);
+        window.onload = initializePage;
     </script>
 </body>
 </html>

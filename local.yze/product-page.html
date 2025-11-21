@@ -270,30 +270,32 @@
         }
         
         // Load product data on page load
-        window.onload = function() {
+        function initializePage() {
             const productData = localStorage.getItem('currentProduct');
             currentProductIndex = parseInt(localStorage.getItem('currentProductIndex'));
             currentBrandIndex = parseInt(localStorage.getItem('currentBrandIndex'));
             
-            // Load all products data from Firebase
-            if (window.firebaseDB && currentBrandIndex !== undefined) {
-                const productsRef = window.firebaseRef(window.firebaseDB, `products/${currentBrandIndex}`);
-                window.firebaseGet(productsRef).then((snapshot) => {
-                    if (snapshot.exists()) {
-                        allProducts = snapshot.val() || [];
-                    } else {
+            // Wait for Firebase to initialize
+            const initFirebase = () => {
+                if (window.firebaseDB && currentBrandIndex !== undefined) {
+                    const productsRef = window.firebaseRef(window.firebaseDB, `products/${currentBrandIndex}`);
+                    window.firebaseGet(productsRef).then((snapshot) => {
+                        if (snapshot.exists()) {
+                            allProducts = snapshot.val() || [];
+                        } else {
+                            const brandKey = 'products_' + currentBrandIndex;
+                            allProducts = JSON.parse(localStorage.getItem(brandKey)) || [];
+                        }
+                    }).catch((error) => {
+                        console.error('Firebase load error:', error);
                         const brandKey = 'products_' + currentBrandIndex;
                         allProducts = JSON.parse(localStorage.getItem(brandKey)) || [];
-                    }
-                }).catch((error) => {
-                    console.error('Firebase load error:', error);
+                    });
+                } else {
                     const brandKey = 'products_' + currentBrandIndex;
                     allProducts = JSON.parse(localStorage.getItem(brandKey)) || [];
-                });
-            } else {
-                const brandKey = 'products_' + currentBrandIndex;
-                allProducts = JSON.parse(localStorage.getItem(brandKey)) || [];
-            }
+                }
+            };
             
             if (productData) {
                 const product = JSON.parse(productData);
@@ -324,11 +326,17 @@
                     imageContainer.innerHTML = '<div class="no-image">📦</div>';
                 }
                 imageContainer.onclick = editPhoto;
+                
+                // Initialize Firebase after DOM is ready
+                setTimeout(initFirebase, 500);
             } else {
                 // If no product data, redirect back
                 window.location.href = 'brand-page.html';
             }
         }
+        
+        window.addEventListener('DOMContentLoaded', initializePage);
+        window.onload = initializePage;
     </script>
 </body>
 </html>

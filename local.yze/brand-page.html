@@ -690,7 +690,7 @@
         }
         
         // Load brand data on page load
-        window.onload = function() {
+        function initializePage() {
             const brandData = localStorage.getItem('currentBrand');
             currentBrandIndex = parseInt(localStorage.getItem('currentBrandIndex'));
             
@@ -714,10 +714,16 @@
                 // Set brand name with click handler
                 document.getElementById('brandName').onclick = editName;
                 
-                setTimeout(() => {
-                    loadProducts();
-                    loadImportedFiles();
-                }, 1000);
+                // Wait for Firebase to initialize
+                const initFirebase = () => {
+                    if (window.firebaseDB) {
+                        loadProducts();
+                        loadImportedFiles();
+                    } else {
+                        setTimeout(initFirebase, 100);
+                    }
+                };
+                setTimeout(initFirebase, 500);
                 
                 document.getElementById('productSearch').addEventListener('input', searchProducts);
                 document.getElementById('productSearch').addEventListener('keypress', function(e) {
@@ -729,6 +735,9 @@
                 window.location.href = 'category-page.html';
             }
         }
+        
+        window.addEventListener('DOMContentLoaded', initializePage);
+        window.onload = initializePage;
     </script>
 </body>
 </html>
