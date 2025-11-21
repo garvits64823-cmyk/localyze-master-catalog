@@ -1,67 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>LOCALYZE - Password Required</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Localyze Master Catalog</title>
     <style>
-        body { 
-            background: #F5F5DC; 
-            font-family: Arial; 
-            text-align: center; 
-            padding-top: 200px; 
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #F5F5DC;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-        h1 { 
-            color: #006400; 
-            font-size: 4rem; 
-            margin-bottom: 50px; 
+        
+        .title {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #006400;
+            margin-bottom: 50px;
+            text-align: center;
         }
-        input { 
-            padding: 15px; 
-            font-size: 18px; 
-            border: 2px solid #006400; 
-            border-radius: 8px; 
-            margin: 10px; 
-            width: 250px; 
+        
+        .about-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #006400;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
-        button { 
-            padding: 15px 30px; 
-            font-size: 18px; 
-            background: #006400; 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
+        
+        .catalog-btn {
+            background-color: #006400;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
-        .error { 
-            color: red; 
-            margin-top: 20px; 
+        
+        .catalog-btn:hover, .about-btn:hover {
+            background-color: #004d00;
         }
     </style>
 </head>
 <body>
-    <h1>LOCALYZE</h1>
-    <p>Enter password to continue:</p>
-    <input type="password" id="pass" placeholder="Password">
-    <br>
-    <button onclick="check()">LOGIN</button>
-    <div id="msg" class="error"></div>
-    
+    <button class="about-btn" onclick="openAbout()">About</button>
+    <h1 class="title">LOCALYZE</h1>
+    <button class="catalog-btn" onclick="openMasterCatalog()">Master Catalog</button>
+   
     <script>
-        function check() {
-            var p = document.getElementById('pass').value;
-            if (p === 'localyze@2025') {
-                document.body.innerHTML = `
-                    <div style="background:#F5F5DC;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;">
-                        <button onclick="location.href='about.html'" style="position:absolute;top:20px;right:20px;background:#006400;color:white;border:none;padding:10px 20px;border-radius:8px;">About</button>
-                        <h1 style="color:#006400;font-size:4rem;margin-bottom:50px;">LOCALYZE</h1>
-                        <button onclick="location.href='master-catalog.html'" style="background:#006400;color:white;border:none;padding:15px 30px;font-size:1.2rem;border-radius:8px;">Master Catalog</button>
-                    </div>`;
-            } else {
-                document.getElementById('msg').innerHTML = 'WRONG PASSWORD!';
-                document.getElementById('pass').value = '';
-            }
+        function openMasterCatalog() {
+            window.location.href = 'master-catalog.html';
         }
-        document.getElementById('pass').onkeypress = function(e) {
-            if (e.key === 'Enter') check();
+        
+        function openAbout() {
+            window.location.href = 'about.html';
         }
     </script>
 </body>
