@@ -200,10 +200,21 @@
                 window.firebaseGet(categoriesRef).then((snapshot) => {
                     if (snapshot.exists()) {
                         categories = snapshot.val() || [];
+                        // Also save to localStorage for offline access
+                        localStorage.setItem('localyzeCategories', JSON.stringify(categories));
                     } else {
                         categories = JSON.parse(localStorage.getItem('localyzeCategories')) || [];
                     }
                     renderCategories();
+                    
+                    // Set up real-time listener for live updates
+                    window.firebaseOnValue(categoriesRef, (snapshot) => {
+                        if (snapshot.exists()) {
+                            categories = snapshot.val() || [];
+                            localStorage.setItem('localyzeCategories', JSON.stringify(categories));
+                            renderCategories();
+                        }
+                    });
                 }).catch((error) => {
                     console.error('Firebase load error:', error);
                     categories = JSON.parse(localStorage.getItem('localyzeCategories')) || [];
@@ -278,15 +289,17 @@
         }
         
         function saveCategories() {
-            // Save to Firebase
+            // Save to localStorage first
+            localStorage.setItem('localyzeCategories', JSON.stringify(categories));
+            
+            // Save to Firebase for real-time sync
             if (window.firebaseDB) {
                 const categoriesRef = window.firebaseRef(window.firebaseDB, 'categories');
-                window.firebaseSet(categoriesRef, categories).catch(error => {
+                window.firebaseSet(categoriesRef, categories).then(() => {
+                    console.log('Categories saved to Firebase successfully');
+                }).catch(error => {
                     console.error('Firebase save error:', error);
-                    localStorage.setItem('localyzeCategories', JSON.stringify(categories));
                 });
-            } else {
-                localStorage.setItem('localyzeCategories', JSON.stringify(categories));
             }
         }
         

@@ -337,10 +337,14 @@
                         // Save all categories
                         localStorage.setItem('localyzeCategories', JSON.stringify(categories));
                         
-                        // Save to Firebase if available
-                        if (window.firebaseDB && currentCategoryIndex !== undefined) {
-                            const categoryRef = window.firebaseRef(window.firebaseDB, `categories/${currentCategoryIndex}`);
-                            window.firebaseSet(categoryRef, categories[currentCategoryIndex]);
+                        // Save to Firebase for real-time sync
+                        if (window.firebaseDB) {
+                            const categoriesRef = window.firebaseRef(window.firebaseDB, 'categories');
+                            window.firebaseSet(categoriesRef, categories).then(() => {
+                                console.log('Category image saved to Firebase successfully');
+                            }).catch(error => {
+                                console.error('Firebase save error:', error);
+                            });
                         }
                         
                         alert('Image saved successfully!');
@@ -366,9 +370,21 @@
             if (newName && newName.trim() && newName.trim() !== currentName) {
                 // Update in categories array
                 categories[currentCategoryIndex].name = newName.trim();
+                
                 // Save to localStorage
                 localStorage.setItem('localyzeCategories', JSON.stringify(categories));
                 localStorage.setItem('currentCategory', JSON.stringify(categories[currentCategoryIndex]));
+                
+                // Save to Firebase for real-time sync
+                if (window.firebaseDB) {
+                    const categoriesRef = window.firebaseRef(window.firebaseDB, 'categories');
+                    window.firebaseSet(categoriesRef, categories).then(() => {
+                        console.log('Categories saved to Firebase successfully');
+                    }).catch(error => {
+                        console.error('Firebase save error:', error);
+                    });
+                }
+                
                 // Update display
                 document.getElementById('categoryTitle').textContent = newName.trim();
             }
@@ -489,12 +505,17 @@
         }
         
         function saveBrands() {
+            // Save to localStorage first
+            const categoryKey = 'brands_' + currentCategoryIndex;
+            localStorage.setItem(categoryKey, JSON.stringify(allBrands));
+            
+            // Save to Firebase for real-time sync
             if (window.firebaseDB && currentCategoryIndex !== undefined) {
                 const brandsRef = window.firebaseRef(window.firebaseDB, `brands/${currentCategoryIndex}`);
-                window.firebaseSet(brandsRef, allBrands).catch(error => {
+                window.firebaseSet(brandsRef, allBrands).then(() => {
+                    console.log('Brands saved to Firebase successfully');
+                }).catch(error => {
                     console.error('Firebase save error:', error);
-                    const categoryKey = 'brands_' + currentCategoryIndex;
-                    localStorage.setItem(categoryKey, JSON.stringify(allBrands));
                 });
             }
         }
@@ -505,11 +526,22 @@
                 window.firebaseGet(brandsRef).then((snapshot) => {
                     if (snapshot.exists()) {
                         allBrands = snapshot.val() || [];
+                        // Also save to localStorage for offline access
+                        const categoryKey = 'brands_' + currentCategoryIndex;
+                        localStorage.setItem(categoryKey, JSON.stringify(allBrands));
                     } else {
                         const categoryKey = 'brands_' + currentCategoryIndex;
                         allBrands = JSON.parse(localStorage.getItem(categoryKey)) || [];
                     }
                     renderBrands();
+                    
+                    // Set up real-time listener for live updates
+                    window.firebaseOnValue(brandsRef, (snapshot) => {
+                        if (snapshot.exists()) {
+                            allBrands = snapshot.val() || [];
+                            renderBrands();
+                        }
+                    });
                 }).catch((error) => {
                     console.error('Firebase load error:', error);
                     const categoryKey = 'brands_' + currentCategoryIndex;
@@ -641,12 +673,17 @@
         }
         
         function saveImportedFiles() {
+            // Save to localStorage first
+            const categoryKey = 'importedFiles_' + currentCategoryIndex;
+            localStorage.setItem(categoryKey, JSON.stringify(importedFiles));
+            
+            // Save to Firebase for real-time sync
             if (window.firebaseDB && currentCategoryIndex !== undefined) {
                 const filesRef = window.firebaseRef(window.firebaseDB, `files/category/${currentCategoryIndex}`);
-                window.firebaseSet(filesRef, importedFiles).catch(error => {
+                window.firebaseSet(filesRef, importedFiles).then(() => {
+                    console.log('Files saved to Firebase successfully');
+                }).catch(error => {
                     console.error('Firebase save error:', error);
-                    const categoryKey = 'importedFiles_' + currentCategoryIndex;
-                    localStorage.setItem(categoryKey, JSON.stringify(importedFiles));
                 });
             }
         }
@@ -657,11 +694,22 @@
                 window.firebaseGet(filesRef).then((snapshot) => {
                     if (snapshot.exists()) {
                         importedFiles = snapshot.val() || [];
+                        // Also save to localStorage for offline access
+                        const categoryKey = 'importedFiles_' + currentCategoryIndex;
+                        localStorage.setItem(categoryKey, JSON.stringify(importedFiles));
                     } else {
                         const categoryKey = 'importedFiles_' + currentCategoryIndex;
                         importedFiles = JSON.parse(localStorage.getItem(categoryKey)) || [];
                     }
                     renderImportedFiles();
+                    
+                    // Set up real-time listener for live updates
+                    window.firebaseOnValue(filesRef, (snapshot) => {
+                        if (snapshot.exists()) {
+                            importedFiles = snapshot.val() || [];
+                            renderImportedFiles();
+                        }
+                    });
                 }).catch((error) => {
                     console.error('Firebase load error:', error);
                     const categoryKey = 'importedFiles_' + currentCategoryIndex;
