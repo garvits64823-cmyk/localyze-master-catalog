@@ -324,22 +324,28 @@
                         const imageContainer = document.getElementById('categoryImageContainer');
                         imageContainer.innerHTML = `<img src="${imageData}" alt="Category Image" class="category-image" style="width: 2cm; height: 2cm; object-fit: cover; border: 2px solid #006400; border-radius: 4px;">`;
                         
-                        // Save to localStorage
+                        // Update global categories variable
+                        if (categories && currentCategoryIndex !== undefined) {
+                            categories[currentCategoryIndex].image = imageData;
+                        }
+                        
+                        // Save current category
                         const categoryData = JSON.parse(localStorage.getItem('currentCategory') || '{}');
                         categoryData.image = imageData;
                         localStorage.setItem('currentCategory', JSON.stringify(categoryData));
                         
-                        // Update categories array
-                        const categories = JSON.parse(localStorage.getItem('localyzeCategories') || '[]');
-                        const currentIndex = parseInt(localStorage.getItem('currentCategoryIndex') || '0');
-                        if (categories[currentIndex]) {
-                            categories[currentIndex].image = imageData;
-                            localStorage.setItem('localyzeCategories', JSON.stringify(categories));
+                        // Save all categories
+                        localStorage.setItem('localyzeCategories', JSON.stringify(categories));
+                        
+                        // Save to Firebase if available
+                        if (window.firebaseDB && currentCategoryIndex !== undefined) {
+                            const categoryRef = window.firebaseRef(window.firebaseDB, `categories/${currentCategoryIndex}`);
+                            window.firebaseSet(categoryRef, categories[currentCategoryIndex]);
                         }
                         
-                        alert('Image uploaded successfully!');
+                        alert('Image saved successfully!');
                     } catch (error) {
-                        alert('Error processing image: ' + error.message);
+                        alert('Error saving image: ' + error.message);
                     }
                 };
                 
@@ -667,27 +673,19 @@
         
         // Load category data on page load
         window.onload = function() {
-            const categoryData = localStorage.getItem('currentCategory');
             currentCategoryIndex = parseInt(localStorage.getItem('currentCategoryIndex'));
             categories = JSON.parse(localStorage.getItem('localyzeCategories')) || [];
             
-            if (categoryData) {
-                const category = JSON.parse(categoryData);
+            if (currentCategoryIndex !== undefined && categories[currentCategoryIndex]) {
+                const category = categories[currentCategoryIndex];
                 
                 // Set category title
                 document.getElementById('categoryTitle').textContent = category.name;
                 
                 // Set category image
                 const imageContainer = document.getElementById('categoryImageContainer');
-                // Reload category data to get latest image
-                const latestCategory = JSON.parse(localStorage.getItem('currentCategory') || '{}');
-                const latestCategories = JSON.parse(localStorage.getItem('localyzeCategories') || '[]');
-                const currentIndex = parseInt(localStorage.getItem('currentCategoryIndex') || '0');
-                
-                let imageToShow = latestCategory.image || (latestCategories[currentIndex] && latestCategories[currentIndex].image);
-                
-                if (imageToShow && imageToShow.trim() !== '') {
-                    imageContainer.innerHTML = `<img src="${imageToShow}" alt="${category.name}" class="category-image">`;
+                if (category.image && category.image.trim() !== '') {
+                    imageContainer.innerHTML = `<img src="${category.image}" alt="${category.name}" class="category-image">`;
                 } else {
                     imageContainer.innerHTML = '<div class="no-image">📁</div>';
                 }
@@ -696,7 +694,7 @@
                 setTimeout(() => {
                     loadImportedFiles();
                     loadBrands();
-                }, 1000);
+                }, 500);
                 
                 // Add search functionality
                 document.getElementById('brandSearch').addEventListener('input', searchBrands);
